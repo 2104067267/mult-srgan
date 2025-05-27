@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图像超分辨率</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('https://picsum.photos/seed/bright/1920/1080');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 4rem;
+            width: 90%;
+            max-width: 1200px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            position: relative;
+        }
+
+        /* 首页样式 */
+        #homePage {
+            text-align: center;
+        }
+
+        #homePage h1 {
+            font-family: 'Pacifico', cursive;
+            font-size: 48px;
+            font-weight: 400;
+            color: #333;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 100px;
+            animation: fadeInDown 1s ease-out, float 3s ease-in-out infinite;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        #homePage .button-container {
+            display: flex;
+            justify-content: space-around;
+            padding: 0 20%;
+        }
+
+        /* 加大首页按钮尺寸并降低透明度 */
+        #homePage button {
+            background: rgba(255, 255, 255, 0.2);
+            color: #333;
+            font-size: 20px;
+            font-weight: 400;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        #homePage button:hover {
+            background: rgba(255, 255, 255, 0.6);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 功能页返回按钮样式 */
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        /* 单张图像处理页面样式 */
+        #singleImagePage {
+            display: none;
+        }
+
+        /* 图像文件处理页面样式 */
+        #imageFilePage {
+            display: none;
+        }
+
+        /* 图像文件处理页面指标显示区域样式 */
+        /* 修改指标容器样式 */
+        #imageFilePage .metrics-container {
+            margin-top: 2rem;
+            width: 100%;
+            padding: 0 1rem;
+        }
+
+        /* 调整指标项布局 */
+        #imageFilePage .metric-item {
+            margin-bottom: 1.5rem;
+            position: relative; /* 为父元素添加相对定位 */
+        }
+
+        /* 标签定位到预览框左上角，不重叠，增加行距 */
+        #imageFilePage .metrics-container label {
+            position: absolute;
+            top: -30px; /* 进一步向上移动标签，增加行距 */
+            left: 15%; /* 向左移动标签 */
+            padding-bottom: 0.5rem;
+            z-index: 1; /* 确保标签显示在预览框之上 */
+        }
+
+        /* 预览框新样式 */
+        #imageFilePage .metrics-container .preview-box {
+            width: 50%;
+            margin: 0 auto;
+            transform: translateY(-8px); /* 向上偏移 */
+            margin-top: 0;
+            padding: 0.8rem;
+            background: rgba(255,255,255,0.18);
+        }
+
+        #imageFilePage .metrics-container .preview-box img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        /* 图像显示区域样式 */
+        .image-preview {
+            margin-top: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .image-preview img {
+            max-width: 200px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 预览框样式 */
+        .preview-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+
+        .preview-box img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        /* 选择文件按钮布局 */
+        .file-select-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body class="font-sans">
+    <div class="container">
+        <!-- 首页 -->
+        <div id="homePage">
+            <h1>图像超分辨率处理</h1>
+            <div class="button-container">
+                <button id="singleImageBtn">输入单张图像</button>
+                <button id="imageFileBtn">输入图像文件</button>
+            </div>
+        </div>
+        <!-- 单张图像处理页面 -->
+        <div id="singleImagePage">
+            <button class="back-button" id="backToHomeBtn">返回首页</button>
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">超分辨率重建 - 单张图像</h1>
+            <div class="flex justify-start space-x-4 mb-8">
+                <input type="file" id="mediaInput" accept="image/*,video/*"
+                    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div id="inputPreview" class="preview-box">
+                    <h2>输入预览</h2>
+                    <img id="inputImagePreview" class="hidden w-full h-auto" src="#" alt="Input Image">
+                    <video id="inputVideoPreview" class="hidden w-full h-auto" controls></video>
+                </div>
+                <div id="outputPreview" class="preview-box">
+                    <h2>输出预览</h2>
+                    <img id="outputImagePreview" class="hidden w-full h-auto" src="#" alt="Output Image">
+                    <video id="outputVideoPreview" class="hidden w-full h-auto" controls></video>
+                </div>
+            </div>
+            <div class="flex justify-center mt-8">
+                <button id="processButton"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">重建</button>
+            </div>
+        </div>
+        <!-- 图像文件处理页面 -->
+        <div id="imageFilePage">
+            <button class="back-button" id="backToHomeFromFileBtn">返回首页</button>
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">图像文件处理页面</h1>
+            <div class="file-select-buttons">
+                <div>
+                    <!-- 使用 label 模拟选择文件按钮 -->
+                    <label for="lowResFolderInput"
+                        class="inline-block text-base text-violet-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-base file:font-semibold bg-white/30 file:text-violet-700 hover:bg-violet-100 cursor-pointer">
+                        选择低分辨率文件
+                    </label>
+                    <input type="file" id="lowResFolderInput" webkitdirectory directory accept="image/*"
+                        class="hidden">
+                </div>
+                <div>
+                    <!-- 使用 label 模拟选择文件按钮 -->
+                    <label for="highResFolderInput"
+                        class="inline-block text-base text-violet-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-base file:font-semibold bg-white/30 file:text-violet-700 hover:bg-violet-100 cursor-pointer">
+                        选择高分辨率文件
+                    </label>
+                    <input type="file" id="highResFolderInput" webkitdirectory directory accept="image/*"
+                        class="hidden">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div id="inputPreviewFiles" class="preview-box">
+                    <h2>输入文件预览</h2>
+                    <div id="lowResFolderPreview" class="flex flex-wrap gap-2"></div>
+                </div>
+                <div id="outputPreviewFiles" class="preview-box">
+                    <h2>输出文件预览</h2>
+                    <div id="reconstructedFolderPreview" class="flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+            <div class="flex justify-center mt-8">
+                <button id="processTwoFoldersButton"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">重建</button>
+            </div>
+            <div class="flex justify-center mt-4">
+                <button id="downloadReconstructedFolderButton"
+                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded hidden">下载重建文件夹</button>
+            </div>
+            <!-- 指标显示区域 -->
+            <div class="metrics-container">
+                <div class="metric-item">
+                    <label for="psnrInput">PSNR 折线图</label>
+                    <div class="preview-box">
+                        <img id="psnrImage" class="w-full h-auto" src="#" alt="PSNR Image">
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <label for="ssimInput">SSIM 折线图</label>
+                    <div class="preview-box">
+                        <img id="ssimImage" class="w-full h-auto" src="#" alt="SSIM Image">
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <label for="entropyInput">Entropy 折线图</label>
+                    <div class="preview-box">
+                        <img id="entropyImage" class="w-full h-auto" src="#" alt="Entropy Image">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const homePage = document.getElementById('homePage');
+        const singleImagePage = document.getElementById('singleImagePage');
+        const imageFilePage = document.getElementById('imageFilePage');
+        const singleImageBtn = document.getElementById('singleImageBtn');
+        const imageFileBtn = document.getElementById('imageFileBtn');
+        const backToHomeBtn = document.getElementById('backToHomeBtn');
+        const backToHomeFromFileBtn = document.getElementById('backToHomeFromFileBtn');
+
+        singleImageBtn.addEventListener('click', () => {
+            homePage.style.display = 'none';
+            singleImagePage.style.display = 'block';
+        });
+
+        imageFileBtn.addEventListener('click', () => {
+            homePage.style.display = 'none';
+            imageFilePage.style.display = 'block';
+        });
+
+        backToHomeBtn.addEventListener('click', () => {
+            singleImagePage.style.display = 'none';
+            homePage.style.display = 'block';
+        });
+
+        backToHomeFromFileBtn.addEventListener('click', () => {
+            imageFilePage.style.display = 'none';
+            homePage.style.display = 'block';
+        });
+
+        const mediaInput = document.getElementById('mediaInput');
+        const processButton = document.getElementById('processButton');
+        const inputImagePreview = document.getElementById('inputImagePreview');
+        const inputVideoPreview = document.getElementById('inputVideoPreview');
+        const outputImagePreview = document.getElementById('outputImagePreview');
+        const outputVideoPreview = document.getElementById('outputVideoPreview');
+
+        mediaInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.type.startsWith('image')) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        inputImagePreview.src = event.target.result;
+                        inputImagePreview.classList.remove('hidden');
+                        inputVideoPreview.classList.add('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                } else if (file.type.startsWith('video')) {
+                    const url = URL.createObjectURL(file);
+                    inputVideoPreview.src = url;
+                    inputVideoPreview.classList.remove('hidden');
+                    inputImagePreview.classList.add('hidden');
+                }
+            }
+        });
+
+        processButton.addEventListener('click', () => {
+            const file = mediaInput.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                if (file.type.startsWith('image')) {
+                    fetch('http://127.0.0.1:5000/api/image-super-resolution', {
+                        method: 'POST',
+                        body: formData
+                    })
+                       .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                       .then(data => {
+                            const imgUrl = `data:image/png;base64,${data.image}`;
+                            outputImagePreview.src = imgUrl;
+                            outputImagePreview.classList.remove('hidden');
+                            outputVideoPreview.classList.add('hidden');
+                            outputImagePreview.classList.add('fade-in');
+                        })
+                       .catch(error => console.error('Error:', error));
+                } else if (file.type.startsWith('video')) {
+                    fetch('http://127.0.0.1:5000/api/video-super-resolution', {
+                        method: 'POST',
+                        body: formData
+                    })
+                       .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.blob();
+                        })
+                       .then(blob => {
+                            const url = URL.createObjectURL(blob);
+                            outputVideoPreview.src = url;
+                            outputVideoPreview.classList.remove('hidden');
+                            outputImagePreview.classList.add('hidden');
+                            outputVideoPreview.classList.add('fade-in');
+                        })
+                       .catch(error => console.error('Error:', error));
+                }
+            }
+        });
+
+        const lowResFolderInput = document.getElementById('lowResFolderInput');
+        const highResFolderInput = document.getElementById('highResFolderInput');
+        const processTwoFoldersButton = document.getElementById('processTwoFoldersButton');
+        const downloadReconstructedFolderButton = document.getElementById('downloadReconstructedFolderButton');
+        const lowResFolderPreview = document.getElementById('lowResFolderPreview');
+        const highResFolderPreview = document.getElementById('highResFolderPreview');
+        const reconstructedFolderPreview = document.getElementById('reconstructedFolderPreview');
+        const psnrImage = document.getElementById('psnrImage');
+        const ssimImage = document.getElementById('ssimImage');
+        const entropyImage = document.getElementById('entropyImage');
+
+        lowResFolderInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            lowResFolderPreview.innerHTML = '';
+            if (files.length > 0) {
+                const file = files[0];
+                if (file && file.type.startsWith('image')) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.classList.add('w-24', 'h-24', 'object-cover', 'rounded');
+                        lowResFolderPreview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        highResFolderInput.addEventListener('change', (e) => {
+            // 不做预览
+        });
+
+        processTwoFoldersButton.addEventListener('click', async () => {
+            const lowResFiles = lowResFolderInput.files;
+            const highResFiles = highResFolderInput.files;
+            if (lowResFiles.length > 0 && highResFiles.length > 0) {
+                const formData = new FormData();
+                for (let i = 0; i < lowResFiles.length; i++) {
+                    formData.append('lowResFiles', lowResFiles[i]);
+                }
+                for (let i = 0; i < highResFiles.length; i++) {
+                    formData.append('highResFiles', highResFiles[i]);
+                }
+
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/api/two-folders-super-resolution', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    reconstructedFolderPreview.innerHTML = '';
+                    if (data.reconstructedImages.length > 0) {
+                        const imgUrl = `data:image/png;base64,${data.reconstructedImages[0]}`;
+                        const img = document.createElement('img');
+                        img.src = imgUrl;
+                        img.classList.add('w-24', 'h-24', 'object-cover', 'rounded');
+                        reconstructedFolderPreview.appendChild(img);
+                    }
+
+                    psnrImage.src = `data:image/png;base64,${data.psnr_plot}`;
+                    ssimImage.src = `data:image/png;base64,${data.ssim_plot}`;
+                    entropyImage.src = `data:image/png;base64,${data.entropy_plot}`;
+
+                    // 显示下载按钮
+                    downloadReconstructedFolderButton.classList.remove('hidden');
+                    downloadReconstructedFolderButton.addEventListener('click', async () => {
+                        try {
+                            const response = await fetch('http://127.0.0.1:5000/api/download-reconstructed-folder');
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            const blob = await response.blob();
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'reconstructed_folder.zip';
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        } catch (error) {
+                            console.error('Error downloading folder:', error);
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
